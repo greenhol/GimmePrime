@@ -1,0 +1,11 @@
+{
+  "name": "gimmeprimes",
+  "version": "0.0.1",
+  "description": "Prime number generator",
+  "main": "gimmePrimes.ts",
+  "author": "me",
+  "license": "MIT",
+  "dependencies": {
+    "typescript": "^2.5.3"
+  }
+}
