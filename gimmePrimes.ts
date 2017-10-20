@@ -3,58 +3,49 @@ import {fs} from 'file-system';
 
 console.log('starting...');
 
-let start = 2;
-const BY = 1000000;
-const MAX = 10000000;
-let cnt = BY;
+const SECTION_SIZE = 1000000;
+const MAX_EVAL_NUM = 10000000;
+
+let section_start = 2;
+let section_end = SECTION_SIZE;
+
 let pool = new Map<number, null>();
 
-let optimized = true;
+let noCalcs = 0;
+let noCalcsThisSection = 0;
 
-if (optimized) {
+while (section_end <= MAX_EVAL_NUM) {
 
-    while (cnt <= MAX) {
+    noCalcsThisSection = 0;    
 
-        for (let i = start; i < cnt; i++) {
-            pool.set(i, null);
-        }
-    
-        pool.forEach((value: null, key: number) => {    
-            let multiplier = key;
-            let product = 0;
-            while (product < cnt) {
-                if (pool.has(product)) {
-                    pool.delete(product);
-                }
-                product = key * multiplier;
-                multiplier++;        
-            }
-        });
-
-        console.log(pool.size + ' prime numbers found between 0 and ' + cnt);
-        start = cnt;
-        cnt += BY;
-    }
-
-} else {
-
-    for (let i = 2; i < MAX; i++) {
+    for (let i = section_start; i < section_end; i++) {
         pool.set(i, null);
     }
 
-    pool.forEach((value: null, key: number) => {    
-        let multiplier = key;
-        let product = 0;
-        while (product < MAX) {
-            if (pool.has(product)) {
-                pool.delete(product);
+    pool.forEach((value: null, key: number) => {
+        if (key < Math.sqrt(section_end)) {
+            let multiplier = Math.floor(section_start / key);
+            if (multiplier < 2) {
+                multiplier = 2;
             }
-            product = key * multiplier;
-            multiplier++;        
+            let product = key * multiplier;
+            while (product < section_end) {
+                if (pool.has(product)) {
+                    pool.delete(product);
+                }
+                multiplier++;                            
+                product = key * multiplier;
+                noCalcs++;
+                noCalcsThisSection++;
+            }
         }
     });
 
-    console.log(pool.size + ' prime numbers found between 0 and ' + MAX);
+    let time = new Date();
+    console.log(pool.size + ' prime numbers found between 0 and ' + section_end + ' - ' + Math.round(100*section_end/MAX_EVAL_NUM) + '% done - Number of calculation steps: ' + noCalcs + ' (+' + noCalcsThisSection + ') - Time: ' + formatTime(time));
+
+    section_start = section_end;
+    section_end += SECTION_SIZE;
 }
 
 console.log('...saving to file...');
@@ -77,4 +68,8 @@ function primesToString() {
         out += (placeholder + primeNo++).slice(-cntDigits) + ': ' + key + '\n';
     });
     return out;
+}
+
+function formatTime(time: Date): string {
+    return time.getHours() + ':' + time.getMinutes() + ':' + time.getSeconds() + '.' + time.getMilliseconds();
 }
